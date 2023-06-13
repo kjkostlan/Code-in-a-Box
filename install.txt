@@ -1,4 +1,5 @@
 # Bootstrap: paste this into a batch/bash/python shell to install Code in a Box into the working directory.
+# Does not fetch any git repos; only downloads a single file.
 #os.system('sudo apt install curl -y') # Uncomment for minimal Ubuntu distros that don't come with curl.
 python3 # Get into Python if in bash/batch.
 python
