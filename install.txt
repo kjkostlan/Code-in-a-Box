@@ -1,0 +1,10 @@
+# Bootstrap: paste this into a batch/bash/python shell to install Code in a Box into the working directory.
+#os.system('sudo apt install curl -y') # Uncomment for minimal Ubuntu distros that don't come with curl.
+python3 # Get into Python if in bash/batch.
+python
+import os
+leaf = 'code_in_a_box.py'; leaf1 = './'+leaf
+url = f'https://raw.githubusercontent.com/kjkostlan/Skythonic/main/{leaf}' # A Curl from a raw file can be a bit out of date (caching). But this file should be pretty stable.
+os.unlink('./'+leaf) if os.path.exists(leaf1) else False
+curl_cmd = f'curl " url " -o "{leaf1}"'
+os.system(curl_cmd)
