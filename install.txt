@@ -4,7 +4,7 @@ python3 # Get into Python if in bash/batch.
 python
 import os
 leaf = 'code_in_a_box.py'; leaf1 = './'+leaf
-url = f'https://raw.githubusercontent.com/kjkostlan/Skythonic/main/{leaf}' # A Curl from a raw file can be a bit out of date (caching). But this file should be pretty stable.
+url = f'https://raw.githubusercontent.com/kjkostlan/Code-in-a-Box/main/{leaf}' # A Curl from a raw file can be a bit out of date (caching). But this file should be pretty stable.
 os.unlink('./'+leaf) if os.path.exists(leaf1) else False
-curl_cmd = f'curl " url " -o "{leaf1}"'
+curl_cmd = f'curl "{url}" -o "{leaf1}"'
 os.system(curl_cmd)

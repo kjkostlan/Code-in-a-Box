@@ -1,5 +1,5 @@
 # Downloads projects from Github or a local folder.
-import io, sys, os, shutil
+import io, sys, os, shutil, stat, time
 
 def _unwindoze_attempt(f, name, tries, retry_delay):
     for i in range(tries):
@@ -22,7 +22,7 @@ def power_delete(fname, tries=12, retry_delay=1.0):
     def f():
         if not os.path.exists(fname):
             return
-        if is_folder(fname):
+        if os.path.isdir(fname):
             shutil.rmtree(fname, onerror=remove_readonly)
         else:
             os.remove(fname)
@@ -49,13 +49,13 @@ def download(url, dest_folder, clear_folder=False):
     if '//github.com' in url or '//www.github.com' in url:
         print('Fetching from GitHub')
         qwrap = lambda txt: '"'+txt+'"'
-        cmd = ' '.join(['git','clone', qwrap(self.origin), qwrap(self.dest)])
+        cmd = ' '.join(['git','clone', qwrap(url), qwrap(dest_folder)])
         if os.path.exists(dest_folder+'/.git'): # Git will complain if there is already a .git
             power_delete(dest_folder+'/.git')
         os.system(cmd) #i.e. git clone https://github.com/the_use/the_repo the_folder. os.system will wait for the cmd to finish.
-        print('Git Clones saved into this folder:', self.dest)
+        print('Git Clones saved into this folder:', dest_folder)
     elif url.startswith('http'):
-        raise Exception(f'TODO: support other websites besides GitHub; in this case {self.origin}')
+        raise Exception(f'TODO: support other websites besides GitHub; in this case {url}')
     elif url.startswith('ftp'):
         raise Exception('FTP requests not planned to be supported.')
     else:
