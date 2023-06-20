@@ -91,7 +91,9 @@ def download(url, dest_folder, clear_folder=False):
         raise Exception('FTP requests not planned to be supported.')
     else:
         url = os.path.realpath(url)
-        if url != dest_folder:
+        if url == dest_folder:
+            raise Exception('Installation destination is the same as installation origin')
+        else:
             if not os.path.exists(url):
-                raise Exception(f'The origin is a folder on a local machine: {folder} but that folder does not exist.')
+                raise Exception(f'The origin is a folder on a local machine: {url} but said folder does not exist.')
             copy_with_overwrite(url, dest_folder)
