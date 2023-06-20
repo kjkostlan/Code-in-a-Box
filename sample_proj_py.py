@@ -32,7 +32,7 @@ except:
     leaf = '/code_in_a_box.py'
     if not os.path.exists('./'+leaf):
         url = f'https://raw.githubusercontent.com/kjkostlan/Code-in-a-Box/main{leaf}'
-        os.system(f'curl "{url}" -o "{"./"+leaf}"')
+        os.system(f'curl "{url}" -o "{"./"+leaf.lower()}"')
     import code_in_a_box
 
     _install_gitpacks()
@@ -43,5 +43,5 @@ def global_get(name, initial_value):
     # Any packages that use Proj should use some sort of qualifier to avoid dict key-collisions.
     # This fn is a get function which sets an initial_value if need be.
     if name not in dataset:
-        dateset[name] = initial_value
+        dataset[name] = initial_value
     return dataset[name]

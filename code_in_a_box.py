@@ -27,7 +27,11 @@ def power_delete(fname, tries=12, retry_delay=1.0):
         if os.path.isdir(fname):
             shutil.rmtree(fname, onerror=remove_readonly)
         else:
-            os.remove(fname)
+            try:
+                os.remove(fname)
+            except Exception as e:
+                os.chmod(fname, stat.S_IWRITE) # Not sure if this helps or not for readonly files.
+                raise e
     _unwindoze_attempt(f, fname, tries, retry_delay)
 
 def copy_with_overwrite(src_folder, dest_folder):
@@ -38,7 +42,16 @@ def copy_with_overwrite(src_folder, dest_folder):
         src_item = src_folder+'/'+y
         dest_item = dest_folder+'/'+y
 
-        if os.path.isfile(src_item):
+        if os.path.isfile(src_item) and os.path.isfile(dest_item):
+            with open(src_item, 'rb') as file:
+                x0 = file.read()
+            with open(dest_item, 'rb') as file:
+                x1 = file.read()
+            if x0 != x1:
+                power_delete(dest_item)
+                shutil.copy2(src_item, dest_item)
+        elif os.path.isfile(src_item) and not os.path.isfile(dest_item):
+            power_delete(dest_item)
             shutil.copy2(src_item, dest_item)
         elif os.path.isdir(src_item):
             copy_with_overwrite(src_item, dest_item)
@@ -81,4 +94,4 @@ def download(url, dest_folder, clear_folder=False):
         if url != dest_folder:
             if not os.path.exists(url):
                 raise Exception(f'The origin is a folder on a local machine: {folder} but that folder does not exist.')
-            shutil.copytree(folder, dest_folder)
+            copy_with_overwrite(url, dest_folder)

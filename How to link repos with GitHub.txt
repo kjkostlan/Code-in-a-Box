@@ -2,10 +2,11 @@
 2. Create a .gitignore from a template (i.e. https://github.com/github/gitignore/blob/main/Python.gitignore)
 3. Create LICENSE (no extension) and paste in the liscence (A very open license: https://choosealicense.com/licenses/mit/)
 4. Add a README.md file
-5. Go to github in a browser and click "repositories" and create "new". Add the name and description.
-6. Make sure you are logged into GitHub.
+5. Make sure you are logged into GitHub.
+6. Go to github in a browser and click "repositories" and create "new". Add the name and description.
 6.8. Try to figure out how all this works, but once setup in an account may not need to be set up per-repo: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 7. git remote add origin <url>      # Be in folder with local repo. URL is https://github.com/<username>/my_repo.git
-8. git commit -m "Initial commit"
-9. git branch -m main   # Slightly increases design:do ratios.
-A. git push --set-upstream origin main
+8. git add *
+9. git commit -m "Initial commit"   # Skipping this generates obscure hard-to-decode error messages on push.
+A. git branch -m main   # Slightly increases design:do ratios.
+B. git push --set-upstream origin main
