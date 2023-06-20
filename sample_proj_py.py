@@ -22,6 +22,14 @@ def _install_gitpacks(): # Runs once on "import proj"
 
 ########################## Boilerplate code below ##############################
 ########### (some of our pacakges depend on global_get and proj.dump_folder) ##########
+def global_get(name, initial_value):
+    # Proj, by our convention, also handles is where global variables are stored.
+    # Any packages that use Proj should use some sort of qualifier to avoid dict key-collisions.
+    # This fn is a get function which sets an initial_value if need be.
+    if name not in dataset:
+        dataset[name] = initial_value
+    return dataset[name]
+
 import os
 try:
     x
@@ -37,11 +45,3 @@ except:
 
     _install_gitpacks()
     #os.unlink('./'+leaf) # Optional delete step.
-
-def global_get(name, initial_value):
-    # Proj, by our convention, also handles is where global variables are stored.
-    # Any packages that use Proj should use some sort of qualifier to avoid dict key-collisions.
-    # This fn is a get function which sets an initial_value if need be.
-    if name not in dataset:
-        dataset[name] = initial_value
-    return dataset[name]
