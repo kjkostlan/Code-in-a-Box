@@ -1,7 +1,7 @@
 # Downloads projects from Github or a local folder.
 import io, sys, os, shutil, stat, time
 
-def _unwindoze_attempt(f, name, tries, retry_delay):
+def _unwindoze_attempt(f, name, tries, retry_delay): # Duplicate code from file_io in the Waterworks repo.
     for i in range(tries):
         try:
             f()
@@ -14,7 +14,7 @@ def _unwindoze_attempt(f, name, tries, retry_delay):
             print('File-in-use error (will retry) for:', name)
             time.sleep(retry_delay)
 
-def power_delete(fname, tries=12, retry_delay=1.0):
+def power_delete(fname, tries=12, retry_delay=1.0): # Duplicate code from file_io in the Waterworks repo.
     fname = os.path.realpath(fname)
     if not os.path.exists(fname):
         return
@@ -34,7 +34,7 @@ def power_delete(fname, tries=12, retry_delay=1.0):
                 raise e
     _unwindoze_attempt(f, fname, tries, retry_delay)
 
-def copy_with_overwrite(src_folder, dest_folder):
+def copy_with_overwrite(src_folder, dest_folder): # Duplicate code from file_io in the Waterworks repo.
     # Acts recursivly.
     os.makedirs(dest_folder, exist_ok=True)
 
@@ -56,15 +56,15 @@ def copy_with_overwrite(src_folder, dest_folder):
         elif os.path.isdir(src_item):
             copy_with_overwrite(src_item, dest_item)
 
-def clear_pycaches(folder):
+def clear_pycaches(folder): # Duplicate code from file_io in the Waterworks repo.
     # Clears all the __pycache__ in the given folder.
     for pwd, dirs, files in os.walk(folder):
         if pwd.replace('\\','/').split('/')[-1] == '__pycache__':
             for fl in files:
                 power_delete(fl)
 
-def download(url, dest_folder, clear_folder=False):
-    # Downloads a project to dest_folder.
+def download(url, dest_folder, clear_folder=False, branch='main'):
+    # Downloads a project to dest_folder. branch will only be used if there are branches.
     dest_folder = os.path.realpath(dest_folder)
     if os.path.exists(dest_folder) and clear_folder:
         power_delete(dest_folder)
@@ -79,7 +79,7 @@ def download(url, dest_folder, clear_folder=False):
         power_delete(dest_folder1, tries=12, retry_delay=1.0)
         print('Fetching from GitHub')
         qwrap = lambda txt: '"'+txt+'"'
-        cmd = ' '.join(['git','clone', qwrap(url), qwrap(dest_folder1)])
+        cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder1)])
         power_delete(dest_folder+'/.git')
         os.system(cmd) #i.e. git clone https://github.com/the_use/the_repo the_folder. os.system will wait for the cmd to finish.
         copy_with_overwrite(dest_folder1, dest_folder)
@@ -92,8 +92,8 @@ def download(url, dest_folder, clear_folder=False):
     else:
         url = os.path.realpath(url)
         if url == dest_folder:
-            raise Exception('Installation destination is the same as installation origin')
+            raise Exception(f'The origin folder is equal to the destination folder (both are {dest_folder})')
         else:
             if not os.path.exists(url):
-                raise Exception(f'The origin is a folder on a local machine: {url} but said folder does not exist.')
+                raise Exception(f'The origin is a folder on a local machine: {url} but that folder does not exist.')
             copy_with_overwrite(url, dest_folder)
