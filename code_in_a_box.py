@@ -1,38 +1,40 @@
 # Downloads projects from Github or a local folder.
 import io, sys, os, shutil, stat, time
 
-def _unwindoze_attempt(f, name, tries, retry_delay): # Duplicate code from file_io in the Waterworks repo.
+def _unwindoze_attempt(f, filename_err_report, tries=12, retry_delay=1, throw_some_errors=False):  # Duplicate code from file_io in the Waterworks repo.
     for i in range(tries):
         try:
             f()
             break
         except PermissionError as e:
-            if 'being used by another process' not in str(e):
-                f() # Throw actual permission errors.
+            if 'being used by another process' in str(e):
+                print('File-in-use error (will retry) for:', filename_err_report)
+            else:
+                if throw_some_errors:
+                    f() # Throw actual permission errors.
+                else:
+                    print('Will retry because of this PermissionError:', str(e))
+
             if i==tries-1:
-                raise Exception('Windoze error: Retried too many times and this file stayed in use:', name)
-            print('File-in-use error (will retry) for:', name)
+                raise Exception('Windoze error: Retried too many times and this file stayed in use:', filename_err_report)
             time.sleep(retry_delay)
 
-def power_delete(fname, tries=12, retry_delay=1.0): # Duplicate code from file_io in the Waterworks repo.
-    fname = os.path.realpath(fname)
+def power_delete(fname, tries=12, retry_delay=1.0): # Duplicate code from file_io in the Waterworks repo with minor modifications.
+    fname = os.path.realpath(fname) # Changed to use builtin fns.
     if not os.path.exists(fname):
         return
-    def remove_readonly(func, path, excinfo):
-        os.chmod(path, stat.S_IWRITE) # rmtree can't remove internal read-only files, but the explorer can. This will remov read-only related errors.
-        func(path)
-    def f():
-        if not os.path.exists(fname):
-            return
-        if os.path.isdir(fname):
-            shutil.rmtree(fname, onerror=remove_readonly)
-        else:
-            try:
-                os.remove(fname)
-            except Exception as e:
-                os.chmod(fname, stat.S_IWRITE) # Not sure if this helps or not for readonly files.
-                raise e
-    _unwindoze_attempt(f, fname, tries, retry_delay)
+    #_update_checkpoints_before_saving(fname) # Line modified.
+
+    if os.path.isdir(fname):  # Changed to use builtin fns.
+        for root, dirs, files in os.walk(fname, topdown=False):
+            for _fname in files:
+                _fname1 = root+'/'+_fname
+                def f():
+                    os.chmod(_fname1, stat.S_IWRITE)
+                _unwindoze_attempt(f, _fname1, tries, retry_delay)
+        _unwindoze_attempt(lambda: shutil.rmtree(fname), fname, tries, retry_delay)
+    else:
+        _unwindoze_attempt(lambda: os.remove(fname), fname, tries, retry_delay)
 
 def copy_with_overwrite(src_folder, dest_folder): # Duplicate code from file_io in the Waterworks repo.
     # Acts recursivly.
@@ -75,16 +77,26 @@ def download(url, dest_folder, clear_folder=False, branch='main'):
     qwrap = lambda txt: '"'+txt+'"'
 
     if '//github.com' in url or '//www.github.com' in url:
-        dest_folder1 = dest_folder+'/git_tmp_dump'
-        power_delete(dest_folder1, tries=12, retry_delay=1.0)
-        print('Fetching from GitHub')
-        qwrap = lambda txt: '"'+txt+'"'
-        cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder1)])
-        power_delete(dest_folder+'/.git')
-        os.system(cmd) #i.e. git clone https://github.com/the_use/the_repo the_folder. os.system will wait for the cmd to finish.
-        copy_with_overwrite(dest_folder1, dest_folder)
-        power_delete(dest_folder1)
-        print('Git Clones saved into this folder:', dest_folder)
+        if clear_folder:
+            dest_folder1 = dest_folder+'/git_tmp_dump'
+            power_delete(dest_folder1, tries=12, retry_delay=1.0)
+            print('Fetching from GitHub:', url, branch)
+            qwrap = lambda txt: '"'+txt+'"'
+            cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder1)])
+            power_delete(dest_folder+'/.git')
+            os.system(cmd) #i.e. git clone https://github.com/the_use/the_repo the_folder. os.system will wait for the cmd to finish.
+            copy_with_overwrite(dest_folder1, dest_folder)
+            power_delete(dest_folder1)
+            print('Git Clones saved into this folder:', dest_folder)
+        else:
+            if os.path.exists(dest_folder+'/.git'):
+                cmd = ' '.join(['git', 'pull', url, '--allow-unrelated-histories'])
+                os.system(cmd)
+                cmd = ' '.join(['git', 'checkout', branch])
+                os.system(cmd)
+            else:
+                cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder)])
+                os.system(cmd)
     elif url.startswith('http'):
         raise Exception(f'TODO: support other websites besides GitHub; in this case {url}')
     elif url.startswith('ftp'):
