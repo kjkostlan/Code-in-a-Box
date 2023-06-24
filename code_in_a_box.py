@@ -91,10 +91,9 @@ def download(url, dest_folder, clear_folder=False, branch='main'):
         else:
             if os.path.exists(dest_folder+'/.git'):
                 d0 = os.getcwd(); os.chdir(dest_folder)
-                cmd = ' '.join(['git', 'pull', url, '--allow-unrelated-histories'])
-                os.system(cmd)
-                cmd = ' '.join(['git', 'checkout', branch])
-                os.system(cmd)
+                os.system(' '.join(['git', 'pull', url, '--allow-unrelated-histories']))
+                os.system(' '.join(['git', 'checkout', branch]))
+                os.system(' '.join(['git', 'reset', '--hard']))
                 os.chdir(d0)
             else:
                 cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder)])
