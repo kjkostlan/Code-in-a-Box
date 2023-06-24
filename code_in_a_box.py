@@ -90,10 +90,12 @@ def download(url, dest_folder, clear_folder=False, branch='main'):
             print('Git Clones saved into this folder:', dest_folder)
         else:
             if os.path.exists(dest_folder+'/.git'):
+                d0 = os.getcwd(); os.chdir(dest_folder)
                 cmd = ' '.join(['git', 'pull', url, '--allow-unrelated-histories'])
                 os.system(cmd)
                 cmd = ' '.join(['git', 'checkout', branch])
                 os.system(cmd)
+                os.chdir(d0)
             else:
                 cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder)])
                 os.system(cmd)
