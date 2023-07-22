@@ -65,10 +65,10 @@ def clear_pycaches(folder): # Duplicate code from file_io in the Waterworks repo
             for fl in files:
                 power_delete(fl)
 
-def download(url, dest_folder, clear_folder=False, branch='main'):
+def download(url, dest_folder, clear_repo=False, clear_folder=False, branch=None):
     # Downloads a project to dest_folder. branch will only be used if there are branches.
     dest_folder = os.path.realpath(dest_folder)
-    if os.path.exists(dest_folder) and clear_folder:
+    if clear_folder:
         power_delete(dest_folder)
     if os.path.exists(dest_folder):
         clear_pycaches(dest_folder)
@@ -77,27 +77,26 @@ def download(url, dest_folder, clear_folder=False, branch='main'):
     qwrap = lambda txt: '"'+txt+'"'
 
     if '//github.com' in url or '//www.github.com' in url:
-        if clear_folder:
-            dest_folder1 = dest_folder+'/git_tmp_dump'
-            power_delete(dest_folder1, tries=12, retry_delay=1.0)
-            print('Fetching from GitHub:', url, branch)
+        if (clear_repo or clear_folder) or not os.path.exists(dest_folder+'/.git'):
+            dest_tmp_folder = dest_folder+'/git_tmp_dump'
+            power_delete(dest_tmp_folder, tries=12, retry_delay=1.0)
+            os.makedirs(dest_tmp_folder)
+            #os.system(f'git init {qwrap(dest_tmp_folder)}')
+            print('Cloning from GitHub:', url, 'Branch:', branch)
             qwrap = lambda txt: '"'+txt+'"'
-            cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder1)])
+            cmd = ' '.join(['git','clone', '--branch'+qwrap(branch) if branch else '', qwrap(url), qwrap(dest_tmp_folder)])
             power_delete(dest_folder+'/.git')
             os.system(cmd) #i.e. git clone https://github.com/the_use/the_repo the_folder. os.system will wait for the cmd to finish.
-            copy_with_overwrite(dest_folder1, dest_folder)
-            power_delete(dest_folder1)
-            print('Git Clones saved into this folder:', dest_folder)
+            copy_with_overwrite(dest_tmp_folder, dest_folder)
+            power_delete(dest_tmp_folder)
+            print('Git Clone saved into this folder:', dest_folder)
         else:
-            if os.path.exists(dest_folder+'/.git'):
-                d0 = os.getcwd(); os.chdir(dest_folder)
-                os.system(' '.join(['git', 'pull', url, '--allow-unrelated-histories']))
+            d0 = os.getcwd(); os.chdir(dest_folder)
+            os.system(' '.join(['git', 'pull', url, '--allow-unrelated-histories']))
+            if branch:
                 os.system(' '.join(['git', 'checkout', branch]))
-                os.system(' '.join(['git', 'reset', '--hard']))
-                os.chdir(d0)
-            else:
-                cmd = ' '.join(['git','clone', '--branch', qwrap(branch), qwrap(url), qwrap(dest_folder)])
-                os.system(cmd)
+            os.system(' '.join(['git', 'reset', '--hard']))
+            os.chdir(d0)
     elif url.startswith('http'):
         raise Exception(f'TODO: support other websites besides GitHub; in this case {url}')
     elif url.startswith('ftp'):
