@@ -84,7 +84,7 @@ def download(url, dest_folder, clear_repo=False, clear_folder=False, branch=None
             #os.system(f'git init {qwrap(dest_tmp_folder)}')
             print('Cloning from GitHub:', url, 'Branch:', branch)
             qwrap = lambda txt: '"'+txt+'"'
-            cmd = ' '.join(['git','clone', '--branch'+qwrap(branch) if branch else '', qwrap(url), qwrap(dest_tmp_folder)])
+            cmd = ' '.join(['git','clone', '--branch '+qwrap(branch) if branch else '', qwrap(url), qwrap(dest_tmp_folder)])
             power_delete(dest_folder+'/.git')
             os.system(cmd) #i.e. git clone https://github.com/the_use/the_repo the_folder. os.system will wait for the cmd to finish.
             copy_with_overwrite(dest_tmp_folder, dest_folder)
